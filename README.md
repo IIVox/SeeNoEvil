@@ -2,7 +2,7 @@
 
 <p align="center"><img src="https://i.ibb.co/99smnZF0/See-No-Evil-Long.png" alt="project-image"></p>
 
-<p id="description">A minimalist CLI tool for network interface discovery and reporting to a Discord webhook.</p>
+<p id="description">A minimalist windows CLI tool for network interface discovery and reporting to a Discord webhook.</p>
 
 
 <h2>🚀 Demo</h2>
