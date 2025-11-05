@@ -21,7 +21,6 @@ python -m pip install --upgrade pip
 
 python -m pip install requests
 
-python -m pip install requests
 ```
 <p>2. Open controller.py and setup your webhook</p>
 
