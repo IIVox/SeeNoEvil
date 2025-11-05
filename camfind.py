@@ -117,11 +117,12 @@ def check_camera_interface(ip, port, path):
 def send_to_discord(webhook_url, ip, port, url, status_code):
     """Send findings to Discord webhook as embed with URL only"""
     try:
+        color = random.randint(0, 0xFFFFFF)
         data = {
             "embeds": [{
                 "title": "Interface Found",
                 "description": f"[Open Interface]({url})",
-                "color": 65280,
+                "color": color,
                 "fields": [
                     {
                         "name": "IP Address",
