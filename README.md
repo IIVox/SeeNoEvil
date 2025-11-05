@@ -1,6 +1,6 @@
 <h1 align="center" id="title">SeeNoEvil</h1>
 
-<p align="center"><img src="https://socialify.git.ci/IIVox/SeeNoEvil/image?font=Inter&amp;language=1&amp;name=1&amp;owner=1&amp;pattern=Circuit+Board&amp;stargazers=1&amp;theme=Dark" alt="project-image"></p>
+<p align="center"><img src="https://i.ibb.co/99smnZF0/See-No-Evil-Long.png" alt="project-image"></p>
 
 <p id="description">A minimalist CLI tool for network interface discovery and reporting to a Discord webhook.</p>
 
@@ -20,7 +20,6 @@ python -m ensurepip
 python -m pip install --upgrade pip
 
 python -m pip install requests
-
 ```
 <p>2. Open controller.py and setup your webhook</p>
 
