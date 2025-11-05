@@ -4,9 +4,11 @@
 
 <p id="description">A minimalist CLI tool for network interface discovery and reporting to a Discord webhook.</p>
 
+
 <h2>🚀 Demo</h2>
 
-[https://ibb.co/GfQcxvGm](https://ibb.co/GfQcxvGm)
+<img src="https://i.ibb.co/5XhBMWCZ/image-2025-11-05-004728692.png" alt="project-screenshot" width="1900" height="8000/">
+<p id="description">note: Ignore the Z im too lazy to retake screenshot</p>
 
 <h2>🛠️ Installation Steps:</h2>
 
