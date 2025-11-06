@@ -12,22 +12,15 @@
 
 <h2>🛠️ Installation Steps:</h2>
 
-<p>1. Open setup.bat OR:</p>
+<p>1. Open setup.bat and wait for installation to finish. </p>
 
-```
-python -m ensurepip
-
-python -m pip install --upgrade pip
-
-python -m pip install requests
-```
-<p>2. Open controller.py and setup your webhook</p>
+<p>2. Open controller.py and setup your webhook. </p>
 
 ```
 set webhook
 ```
 
-<p>3. See commands</p>
+<p>3. See commands. </p>
 
 ```
 help
