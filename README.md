@@ -30,6 +30,6 @@ help
 
 Keep changes focused and lawful. Add clear tests and update docs/screenshots. Open PRs against main with a description of why the change is safe and needed.
 
-<h2>🛡️ License:</h2>
+<h2>🛡️ Disclaimer:</h2>
 
-This project is licensed under the Security & Legal — Read this. This project is provided for lawful testing and network hygiene only. The author accepts no liability for misuse. By using this tool you confirm you have the right to scan the target network.
+I, the creator, am in no way responsible for any actions that you may make using this software. You take full responsibility with any action taken using this software. Please take note that this application was designed for educational purposes and should never be used maliciously. By downloading the software or source to the software, you automatically accept this agreement.
