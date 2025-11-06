@@ -6,6 +6,7 @@ import ipaddress
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import sys
+from bs4 import BeautifulSoup
 
 try:
     with open('webhook.txt', 'r') as f:
@@ -78,6 +79,33 @@ def check_port(ip, port):
     except:
         return False
 
+def extract_page_info(content):
+    """Extract title and generate a preview from HTML content"""
+    try:
+        soup = BeautifulSoup(content, 'html.parser')
+        
+        # Get title
+        title = soup.title.string.strip() if soup.title else "No Title"
+        
+        # Get preview text (first 200 characters from body)
+        body = soup.find('body')
+        if body:
+            # Remove script and style elements
+            for script in soup(["script", "style"]):
+                script.decompose()
+            text = body.get_text()
+            # Clean up text
+            lines = (line.strip() for line in text.splitlines())
+            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+            text = ' '.join(chunk for chunk in chunks if chunk)
+            preview = text[:200] + "..." if len(text) > 200 else text
+        else:
+            preview = "No preview available"
+        
+        return title, preview
+    except:
+        return "Error Parsing Page", "Could not extract page information"
+
 def check_camera_interface(ip, port, path):
     """Check if a interface exists at the given URL"""
     url = f"http://{ip}:{port}{path}"
@@ -99,39 +127,56 @@ def check_camera_interface(ip, port, path):
         
         if status_code == 200:
             if any(keyword in content for keyword in ["ip camera", "network camera", "webcam", "dvr", "nvr"]):
-                return True, url, status_code
+                # Extract page details
+                title, preview = extract_page_info(response.text)
+                return True, url, status_code, title, preview
             
             if any(indicator in content for indicator in camera_indicators):
                 if "login" in content or "<video" in content or "stream" in content or "rtsp://" in content:
-                    return True, url, status_code
+                    # Extract page details
+                    title, preview = extract_page_info(response.text)
+                    return True, url, status_code, title, preview
                     
                 if "password" in content and ("username" in content or "user" in content):
-                    return True, url, status_code
+                    # Extract page details
+                    title, preview = extract_page_info(response.text)
+                    return True, url, status_code, title, preview
                     
     except requests.exceptions.RequestException:
         pass
     except Exception:
         pass
-    return False, None, None
+    return False, None, None, None, None
 
-def send_to_discord(webhook_url, ip, port, url, status_code):
-    """Send findings to Discord webhook as embed with URL only"""
+def send_to_discord(webhook_url, ip, port, url, status_code, title, preview):
+    """Send findings to Discord webhook with detailed information"""
     try:
         color = random.randint(0, 0xFFFFFF)
         data = {
             "embeds": [{
-                "title": "Interface Found",
-                "description": f"[Open Interface]({url})",
+                "title": f"🌐 {title}",
+                "url": url,
+                "description": preview,
                 "color": color,
                 "fields": [
                     {
-                        "name": "IP Address",
+                        "name": "🔗 URL",
+                        "value": url,
+                        "inline": False
+                    },
+                    {
+                        "name": "📍 IP Address",
                         "value": ip,
                         "inline": True
                     },
                     {
-                        "name": "Port",
+                        "name": "🔌 Port",
                         "value": str(port),
+                        "inline": True
+                    },
+                    {
+                        "name": "📶 Status",
+                        "value": str(status_code),
                         "inline": True
                     }
                 ],
@@ -155,10 +200,12 @@ def scan_ip(ip):
             print(f"  [+] Port {port} open on {ip}")
             
             for path in COMMON_PATHS:
-                is_camera, url, status = check_camera_interface(ip, port, path)
+                is_camera, url, status, title, preview = check_camera_interface(ip, port, path)
                 if is_camera:
                     print(f"    [INTERFACE] Found at: {url}")
-                    send_to_discord(WEBHOOK_URL, ip, port, url, status)
+                    print(f"      Title: {title}")
+                    print(f"      Preview: {preview[:100]}...")
+                    send_to_discord(WEBHOOK_URL, ip, port, url, status, title, preview)
                     return True
     return False
 
