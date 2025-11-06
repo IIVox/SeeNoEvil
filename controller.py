@@ -85,7 +85,10 @@ class Controller:
             with self.lock:
                 for aid, agent in list(self.agents.items()):
                     if not agent.is_alive() and agent.stopped_at is None:
-                        agent.stopped_at = time.time()
+                        agent.stopped_at = time.time()              
+                    elif not agent.is_alive() and agent.stopped_at is not None:
+                        if time.time() - agent.stopped_at > 5:
+                            self.agents.pop(aid, None)
 
     def _abs_script(self):
         return os.path.abspath(self.script)
@@ -96,44 +99,33 @@ class Controller:
         launch_cmd = f'"{python_exe}" "{script_path}"'
 
         if os.name == "nt":
-            try:
-                creationflags = subprocess.CREATE_NEW_CONSOLE
-            except AttributeError:
-                creationflags = 0
-            p = subprocess.Popen([python_exe, script_path], creationflags=creationflags)
-            return p, launch_cmd
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+            p = subprocess.Popen(
+                [python_exe, script_path],
+                startupinfo=startupinfo,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                stdin=subprocess.DEVNULL
+            )
+            return p, launch_cmd + " (background)"
 
         if sys.platform == "darwin":
-            apple = f'tell application "Terminal" to do script "{python_exe} {shlex.quote(script_path)}"'
-            try:
-                subprocess.Popen(["osascript", "-e", apple])
-                p = subprocess.Popen([python_exe, script_path])
-                return p, launch_cmd + " (opened in Terminal via osascript)"
-            except Exception:
-                p = subprocess.Popen([python_exe, script_path])
-                return p, launch_cmd + " (background)"
+            p = subprocess.Popen(
+                [python_exe, script_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                stdin=subprocess.DEVNULL
+            )
+            return p, launch_cmd + " (background)"
 
-        terminals = [
-            (["x-terminal-emulator", "-e"], True),
-            (["gnome-terminal", "--", python_exe, script_path], False),
-            (["konsole", "-e"], True),
-            (["xterm", "-hold", "-e"], True),
-            (["uxterm", "-hold", "-e"], True),
-        ]
-        for term, use_exec in terminals:
-            try:
-                if use_exec:
-                    cmd = term + [python_exe, script_path]
-                else:
-                    cmd = term
-                p = subprocess.Popen(cmd)
-                return p, " ".join(shlex.quote(x) for x in cmd)
-            except FileNotFoundError:
-                continue
-            except Exception:
-                continue
-
-        p = subprocess.Popen([python_exe, script_path])
+        p = subprocess.Popen(
+            [python_exe, script_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL
+        )
         return p, launch_cmd + " (background)"
 
     def start(self, amount: int):
@@ -166,13 +158,18 @@ class Controller:
                 print(f"no agent {aid}")
                 return
             agent.terminate()
-            print(f"killed agent {aid} (pid={agent.popen.pid})")
+        del self.agents[aid]
+        if not self.agents:
+            self.next_id = 1
+        print(f"killed agent {aid} (pid={agent.popen.pid})")
 
     def kill_all(self):
         with self.lock:
             for aid, agent in list(self.agents.items()):
                 if agent.is_alive():
                     agent.terminate()
+            self.agents.clear()
+            self.next_id = 1
             print("all agents terminated")
 
     def restart(self, aid: int):
